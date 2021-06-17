@@ -1,15 +1,31 @@
-import java.net.Socket;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.*;
 
-public class Client {
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+
+import java.awt.Font;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.*;
+
+import java.awt.BorderLayout;
+
+public class Client extends JFrame {
     Socket socket;
 
     BufferedReader bufferedReader; // for reading
     PrintWriter printWriter; // for writting
+
+    private JLabel heading = new JLabel("Client Area");
+    private JTextArea messageArea = new JTextArea();
+    private JTextField messageInput = new JTextField();
+    private Font font = new Font("Roboto", Font.PLAIN, 20);
 
     Client() {
         try {
@@ -20,6 +36,9 @@ public class Client {
             bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream())); // input stream
             printWriter = new PrintWriter(socket.getOutputStream()); // output stream
 
+            createGUI();
+            handleEvents();
+
             // invoke both methods simultaneously by Multi-threading
             readingDataFromServer();
             writingDataFromClientToServer();
@@ -27,6 +46,63 @@ public class Client {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void createGUI() {
+        this.setTitle("Client Messager[END]");
+        this.setSize(400, 700);
+        this.setLocationRelativeTo(null);
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setVisible(true);
+        heading.setFont(font);
+        messageArea.setFont(font);
+        messageInput.setFont(font);
+        heading.setIcon(new ImageIcon("gig.png"));
+        heading.setHorizontalTextPosition(SwingConstants.CENTER);
+        heading.setVerticalTextPosition(SwingConstants.BOTTOM);
+        heading.setHorizontalAlignment(SwingConstants.CENTER);
+        heading.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        messageInput.setHorizontalAlignment(SwingConstants.CENTER);
+        this.setLayout(new BorderLayout());
+        this.add(heading, BorderLayout.NORTH);
+        this.add(messageArea, BorderLayout.CENTER);
+        this.add(messageInput, BorderLayout.SOUTH);
+
+    }
+
+    public void handleEvents() {
+        messageInput.addKeyListener(new KeyListener() {
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+
+                System.out.println("Key release " + e.getKeyCode());
+                if (e.getKeyCode() == 10) {
+                    // System.out.println("you have pressed Enter button");
+
+                    String ContentToSend = messageInput.getText();
+                    messageArea.append("Me : " + ContentToSend + "\n");
+                    printWriter.println(ContentToSend);
+                    printWriter.flush();
+                    messageInput.setText("");
+                    messageInput.requestFocus();
+
+                }
+
+            }
+
+            @Override
+            public void keyTyped(KeyEvent e) {
+
+            }
+
+        });
+
     }
 
     public void readingDataFromServer() {
@@ -41,10 +117,15 @@ public class Client {
 
                     if (ServerMessage.equals("exit") || ServerMessage.equals("bye")) {
                         System.out.println("Server terminated the chat ! ...");
+                        JOptionPane.showMessageDialog(this, "server terminated the chat");
+                        messageInput.setEnabled(false);
                         break;
                     }
 
-                    System.out.println("Server : " + ServerMessage);
+                    // System.out.println("Server : " + ServerMessage);
+
+                    messageArea.append("server :" + ServerMessage + "\n");
+                    JOptionPane.showMessageDialog(this, "server terminated the chat");
 
                 } catch (Exception e) {
                     e.printStackTrace();
